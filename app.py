@@ -1,5 +1,6 @@
 # ==============================================================================
-# Aeon's End Randomizer - เวอร์ชันสำหรับ Deploy บน Streamlit Cloud
+# Aeon's End Randomizer - Final Version for Deployment
+# (Filter System, No Save/Load, Reads from st.secrets)
 # ==============================================================================
 
 # --- 1. Import ไลบรารีที่จำเป็น ---
@@ -26,19 +27,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# --- 4. ส่วนของการเชื่อมต่อกับ Google Sheets (ปรับปรุงสำหรับ st.secrets) ---
+# --- 4. ส่วนของการเชื่อมต่อกับ Google Sheets (สำหรับ Deploy) ---
 @st.cache_data(ttl=600)
 def load_data_from_sheet(sheet_name):
     try:
-        # **ปรับแก้: อ่านข้อมูล credentials จาก st.secrets แทนไฟล์ .json**
+        # อ่านข้อมูล credentials จาก st.secrets แทนไฟล์ .json
         creds_dict = st.secrets["gcp_service_account"]
         scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
                  "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
         
-        # YOUR_SHEET_NAME ควรตั้งไว้ใน st.secrets ด้วยเพื่อความปลอดภัย
-        # แต่เพื่อความง่าย เราจะยังคงใส่ไว้ตรงๆ ก่อน
+        # ชื่อชีตของคุณ
         spreadsheet = client.open("Aeon's End - Game Data") 
         worksheet = spreadsheet.worksheet(sheet_name)
         df = pd.DataFrame(worksheet.get_all_records())
@@ -132,18 +132,19 @@ if st.sidebar.button("🎲 เริ่มสุ่ม!"):
                         with cols[j]:
                             card = row_cards[j]
                             st.image(card['ImageURL'], width=200)
-                            st.caption(f"**{card.get('Name', '')}** (Cost: {card.get('Cost', 'N/A')})")
+                            st.caption(f"**{card.get('Name', '')}** (Cost: {card.get('Cost', 'N/A')})<br>*{card.get('Expansion', '')}*", unsafe_allow_html=True)
                 st.divider()
                 st.subheader("👥 กลุ่ม Mage สำหรับเริ่มต้น (เลือก 4 คน)")
                 cols = st.columns(4)
                 for i, mage in enumerate(mages.itertuples()):
                     with cols[i]:
                         st.image(mage.ImageURL, width=200)
-                        st.caption(f"**{mage.Name}**")
+                        st.caption(f"**{mage.Name}**<br>*{mage.Expansion}*", unsafe_allow_html=True)
                 st.divider()
                 st.subheader("👹 Battle 1: เผชิญหน้ากับ")
                 st.title(nemesis_1['Name'])
                 st.image(nemesis_1['ImageURL'], width=250)
+                st.caption(f"*{nemesis_1['Expansion']}*")
             
             with tab2:
                 st.subheader("💎 รางวัลจากด่านที่ 1 (เลือกรับจาก 3 ใบนี้)")
@@ -151,18 +152,19 @@ if st.sidebar.button("🎲 เริ่มสุ่ม!"):
                 for i, t in enumerate(treasures_1.itertuples()):
                     with cols[i]:
                         st.image(t.ImageURL, width=200)
-                        st.caption(f"**{t.Name}** (Level {t.Level})")
+                        st.caption(f"**{t.Name}** (Level {t.Level})<br>*{t.Expansion}*", unsafe_allow_html=True)
                 st.divider()
                 st.subheader("🔄 การ์ดตลาดใหม่ 3 ใบ (สำหรับเติม)")
                 cols = st.columns(3)
                 for i, card in enumerate(replacement_market_1.itertuples()):
                      with cols[i]:
                         st.image(card.ImageURL, width=200)
-                        st.caption(f"**{card.Name}** (Cost: {card.Cost})")
+                        st.caption(f"**{card.Name}** (Cost: {card.Cost})<br>*{card.Expansion}*", unsafe_allow_html=True)
                 st.divider()
                 st.subheader("👹 Battle 2: เผชิญหน้ากับ")
                 st.title(nemesis_2['Name'])
                 st.image(nemesis_2['ImageURL'], width=250)
+                st.caption(f"*{nemesis_2['Expansion']}*")
 
             with tab3:
                 st.subheader("💎 รางวัลจากด่านที่ 2 (เลือกรับจาก 3 ใบนี้)")
@@ -170,18 +172,19 @@ if st.sidebar.button("🎲 เริ่มสุ่ม!"):
                 for i, t in enumerate(treasures_2.itertuples()):
                     with cols[i]:
                         st.image(t.ImageURL, width=200)
-                        st.caption(f"**{t.Name}** (Level {t.Level})")
+                        st.caption(f"**{t.Name}** (Level {t.Level})<br>*{t.Expansion}*", unsafe_allow_html=True)
                 st.divider()
                 st.subheader("🔄 การ์ดตลาดใหม่ 3 ใบ (สำหรับเติม)")
                 cols = st.columns(3)
                 for i, card in enumerate(replacement_market_2.itertuples()):
                      with cols[i]:
                         st.image(card.ImageURL, width=200)
-                        st.caption(f"**{card.Name}** (Cost: {card.Cost})")
+                        st.caption(f"**{card.Name}** (Cost: {card.Cost})<br>*{card.Expansion}*", unsafe_allow_html=True)
                 st.divider()
                 st.subheader("👹 Battle 3: เผชิญหน้ากับ")
                 st.title(nemesis_3['Name'])
                 st.image(nemesis_3['ImageURL'], width=250)
+                st.caption(f"*{nemesis_3['Expansion']}*")
 
             with tab4:
                 st.subheader("💎 รางวัลจากด่านที่ 3 (เลือกรับจาก 3 ใบนี้)")
@@ -189,18 +192,19 @@ if st.sidebar.button("🎲 เริ่มสุ่ม!"):
                 for i, t in enumerate(treasures_3.itertuples()):
                     with cols[i]:
                         st.image(t.ImageURL, width=200)
-                        st.caption(f"**{t.Name}** (Level {t.Level})")
+                        st.caption(f"**{t.Name}** (Level {t.Level})<br>*{t.Expansion}*", unsafe_allow_html=True)
                 st.divider()
                 st.subheader("🔄 การ์ดตลาดใหม่ 3 ใบ (สำหรับเติม)")
                 cols = st.columns(3)
                 for i, card in enumerate(replacement_market_3.itertuples()):
                      with cols[i]:
                         st.image(card.ImageURL, width=200)
-                        st.caption(f"**{card.Name}** (Cost: {card.Cost})")
+                        st.caption(f"**{card.Name}** (Cost: {card.Cost})<br>*{card.Expansion}*", unsafe_allow_html=True)
                 st.divider()
                 st.subheader("👹 Battle 4 (Final Boss): เผชิญหน้ากับ")
                 st.title(nemesis_4['Name'])
                 st.image(nemesis_4['ImageURL'], width=250)
+                st.caption(f"*{nemesis_4['Expansion']}*")
 
         except Exception as e:
             st.error("การสุ่มล้มเหลว! อาจเป็นเพราะ Content จากภาคเสริมที่เลือกไว้มีไม่เพียงพอ")
@@ -219,20 +223,19 @@ if st.sidebar.button("🎲 เริ่มสุ่ม!"):
             
             col1, col2 = st.columns([1, 2])
             with col1:
-                st.image(nemesis['ImageURL'], caption=nemesis['Name'])
+                st.image(nemesis['ImageURL'], width=250)
+                st.caption(f"**{nemesis['Name']}**<br>*{nemesis['Expansion']}*", unsafe_allow_html=True)
             with col2:
                 st.subheader("คุณจะต้องเผชิญหน้ากับ:")
                 st.title(f"👹 {nemesis['Name']}")
-                st.info(f"มาจากภาคเสริม: {nemesis['Expansion']}")
             st.divider()
 
             st.subheader("เหล่าผู้วิเศษผู้ถูกเลือก (4 คน):")
             cols = st.columns(4)
             for i, mage in enumerate(mages.itertuples()):
                 with cols[i]:
-                    st.subheader(mage.Name)
                     st.image(mage.ImageURL, width=200) 
-                    st.caption(f"ภาคเสริม: {mage.Expansion}")
+                    st.caption(f"**{mage.Name}**<br>*{mage.Expansion}*", unsafe_allow_html=True)
             st.divider()
 
             st.subheader("การ์ดในตลาด (Market):")
@@ -244,7 +247,7 @@ if st.sidebar.button("🎲 เริ่มสุ่ม!"):
                     with cols[j]:
                         card = row_cards[j]
                         st.image(card['ImageURL'], width=200)
-                        st.caption(f"**{card.get('Name', '')}** (Cost: {card.get('Cost', 'N/A')})")
+                        st.caption(f"**{card.get('Name', '')}** (Cost: {card.get('Cost', 'N/A')})<br>*{card.get('Expansion', '')}*", unsafe_allow_html=True)
         
         except Exception as e:
             st.error("การสุ่มล้มเหลว! อาจเป็นเพราะ Content จากภาคเสริมที่เลือกไว้มีไม่เพียงพอ")
