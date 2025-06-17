@@ -8,7 +8,6 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import random
-import json
 
 # --- 2. ตั้งค่าหน้าเว็บหลัก ---
 st.set_page_config(
@@ -254,8 +253,15 @@ if st.sidebar.button("🎲 เริ่มสุ่ม!"):
                 cols = st.columns(3) 
                 row_cards = market_cards[i:i+3]
                 for j in range(len(row_cards)):
-                    # <<< นี่คือจุดที่แก้ไข Indentation Error >>>
                     with cols[j]:
                         card = row_cards[j]
                         st.image(card['ImageURL'], width=200)
-                        st.caption(f"**{card.get('Name', '')}** (Cost: {card.get('Cost', 'N/A')})
+                        st.caption(f"**{card.get('Name', '')}** (Cost: {card.get('Cost', 'N/A')})<br>*{card.get('Expansion', '')}*", unsafe_allow_html=True)
+        
+        except Exception as e:
+            st.error("การสุ่มล้มเหลว! อาจเป็นเพราะ Content จากภาคเสริมที่เลือกไว้มีไม่เพียงพอ")
+            st.error(f"รายละเอียด: {e}")
+
+else:
+    # --- หน้าจอเริ่มต้น ---
+    st.info("⬅️ กรุณาตั้งค่าการเล่นในเมนูด้านซ้าย แล้วกดปุ่ม 'เริ่มสุ่ม!' เพื่อเริ่มต้น")
