@@ -1,3 +1,7 @@
+# ======================================================================
+# Aeon's End Randomizer (Final Version - Fixed Display Game Function)
+# ======================================================================
+
 # ==============================================================================
 # Aeon's End Randomizer - Final Version (Filter + New Local Storage Method)
 # ==============================================================================
@@ -286,6 +290,18 @@ if saved_data_b64:
         st.toast("ลบข้อมูลที่บันทึกไว้แล้ว!")
         st.experimental_rerun()
 
+
+# --- ส่วนแสดงผลหลัก ---
+if st.session_state.game_data:
+    display_game(st.session_state.game_data)
+else:
+    st.info("⬅️ กรุณาตั้งค่าการเล่นในเมนูด้านซ้าย แล้วกดปุ่ม 'เริ่มสุ่มใหม่!' หรือโหลดเกมที่บันทึกไว้")
+# --- [เพิ่มฟังก์ชันนี้เพื่อแก้ไขปัญหา] ---
+def display_game(game_data):
+    if game_data['mode'] == "เล่นยาว (Expedition)":
+        display_expedition(game_data)
+    else:
+        display_single_game(game_data)
 
 # --- ส่วนแสดงผลหลัก ---
 if st.session_state.game_data:
