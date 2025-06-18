@@ -1,5 +1,5 @@
 # ==============================================================================
-# Aeon's End Randomizer - Final Version (Adjusted Replacement Market Rules)
+# Aeon's End Randomizer - Final Version (Bug Fix for Single Game Nemesis)
 # ==============================================================================
 
 # --- 1. Import ไลบรารีที่จำเป็น ---
@@ -142,7 +142,6 @@ st.sidebar.subheader(t["exp_select_header"])
 if not df_cards_full.empty:
     expansions = pd.concat([df_mages_full['Expansion'], df_nemeses_full['Expansion'], df_cards_full['Expansion'], df_treasures_full['Expansion']]).dropna().unique().tolist()
     selected_expansions = []
-    # Using a unique key for each checkbox that changes with the language to avoid state conflicts
     for expansion in sorted(expansions):
         if st.sidebar.checkbox(expansion, value=True, key=f"exp_{expansion}_{lang_code}"):
             selected_expansions.append(expansion)
@@ -201,8 +200,6 @@ if st.sidebar.button(t["random_button"]):
             
             available_cards = df_cards.drop(initial_market_df.index)
             
-            # <<< ปรับแก้: การ์ดใหม่ทั้ง 3 ชุดจะเป็น Gem 1, Relic 1, Spell 1 เสมอ >>>
-            # ชุดที่ 1 (หลัง Battle 1)
             gem_r1 = available_cards[available_cards['Type'] == 'Gem'].sample(1)
             available_cards = available_cards.drop(gem_r1.index)
             relic_r1 = available_cards[available_cards['Type'] == 'Relic'].sample(1)
@@ -211,7 +208,6 @@ if st.sidebar.button(t["random_button"]):
             available_cards = available_cards.drop(spell_r1.index)
             replacement_market_1 = pd.concat([gem_r1, relic_r1, spell_r1])
 
-            # ชุดที่ 2 (หลัง Battle 2)
             gem_r2 = available_cards[available_cards['Type'] == 'Gem'].sample(1)
             available_cards = available_cards.drop(gem_r2.index)
             relic_r2 = available_cards[available_cards['Type'] == 'Relic'].sample(1)
@@ -220,13 +216,11 @@ if st.sidebar.button(t["random_button"]):
             available_cards = available_cards.drop(spell_r2.index)
             replacement_market_2 = pd.concat([gem_r2, relic_r2, spell_r2])
 
-            # ชุดที่ 3 (หลัง Battle 3)
             gem_r3 = available_cards[available_cards['Type'] == 'Gem'].sample(1)
             available_cards = available_cards.drop(gem_r3.index)
             relic_r3 = available_cards[available_cards['Type'] == 'Relic'].sample(1)
             available_cards = available_cards.drop(relic_r3.index)
             spell_r3 = available_cards[available_cards['Type'] == 'Spell'].sample(1)
-            # available_cards = available_cards.drop(spell_r3.index) # ไม่จำเป็นต้อง drop ชุดสุดท้าย
             replacement_market_3 = pd.concat([gem_r3, relic_r3, spell_r3])
 
             treasures_1 = df_treasures[df_treasures['Level'] == 1].sample(3)
@@ -327,6 +321,7 @@ if st.sidebar.button(t["random_button"]):
     else: # Single Game
         st.header(t["single_game_results_header"])
         try:
+            # <<< ปรับแก้: แก้ไขการสุ่ม Nemesis ให้สุ่มจากทุก Level โดยไม่กรอง Level == 1 >>>
             nemesis = df_nemeses.sample(1).iloc[0]
             mages = df_mages.sample(4)
             
