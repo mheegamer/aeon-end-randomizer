@@ -1,5 +1,5 @@
 # ==============================================================================
-# Aeon's End Randomizer - Final Version (Bug Fix for KeyError on Empty Sheets)
+# Aeon's End Randomizer - Final Version (Bug Fix for KeyError on Filtering)
 # ==============================================================================
 
 # --- 1. Import ไลบรารีที่จำเป็น ---
@@ -140,7 +140,7 @@ st.sidebar.header(t["sidebar_header"])
 
 st.sidebar.subheader(t["exp_select_header"])
 
-# <<< ปรับแก้: แก้ไขวิธีรวมรายชื่อภาคเสริมให้รองรับชีตที่ว่างเปล่า >>>
+# --- ปรับแก้: แก้ไขวิธีรวมรายชื่อภาคเสริมให้รองรับชีตที่ว่างเปล่า ---
 all_expansion_series = []
 if not df_mages_full.empty and 'Expansion' in df_mages_full.columns:
     all_expansion_series.append(df_mages_full['Expansion'])
@@ -161,7 +161,6 @@ else:
     selected_expansions = []
     st.sidebar.warning(t["no_card_data_warning"])
 
-
 st.sidebar.divider()
 
 st.sidebar.subheader(t["style_select_header"])
@@ -180,12 +179,29 @@ game_mode = st.sidebar.selectbox(
 )
 
 if st.sidebar.button(t["random_button"]):
-    df_mages = df_mages_full[df_mages_full['Expansion'].isin(selected_expansions)]
-    df_nemeses = df_nemeses_full[df_nemeses_full['Expansion'].isin(selected_expansions)]
-    df_cards = df_cards_full[df_cards_full['Expansion'].isin(selected_expansions)]
-    df_treasures = df_treasures_full[df_treasures_full['Expansion'].isin(selected_expansions)]
     
-    # (โค้ดที่เหลือเหมือนเดิมทุกประการ)
+    # <<< ปรับแก้: เพิ่มการตรวจสอบก่อนกรองข้อมูล เพื่อป้องกัน KeyError >>>
+    if not df_mages_full.empty and 'Expansion' in df_mages_full.columns:
+        df_mages = df_mages_full[df_mages_full['Expansion'].isin(selected_expansions)]
+    else:
+        df_mages = pd.DataFrame()
+
+    if not df_nemeses_full.empty and 'Expansion' in df_nemeses_full.columns:
+        df_nemeses = df_nemeses_full[df_nemeses_full['Expansion'].isin(selected_expansions)]
+    else:
+        df_nemeses = pd.DataFrame()
+
+    if not df_cards_full.empty and 'Expansion' in df_cards_full.columns:
+        df_cards = df_cards_full[df_cards_full['Expansion'].isin(selected_expansions)]
+    else:
+        df_cards = pd.DataFrame()
+        
+    if not df_treasures_full.empty and 'Expansion' in df_treasures_full.columns:
+        df_treasures = df_treasures_full[df_treasures_full['Expansion'].isin(selected_expansions)]
+    else:
+        df_treasures = pd.DataFrame()
+
+    # --- ตรรกะสำหรับโหมด "เล่นยาว (Expedition)" ---
     if game_mode == t["mode_expedition"]:
         st.header(t["expedition_results_header"])
         try:
