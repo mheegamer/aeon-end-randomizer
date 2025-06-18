@@ -1,5 +1,5 @@
 # ==============================================================================
-# Aeon's End Randomizer - Final Version (Optimize Random & Multi-Language)
+# Aeon's End Randomizer - Final Version (Adjusted Randomization Rules)
 # ==============================================================================
 
 # --- 1. Import ไลบรารีที่จำเป็น ---
@@ -54,6 +54,7 @@ LANGUAGES = {
         "battle_4_header": "👹 Battle 4 (Final Boss): เผชิญหน้ากับ",
         "treasure_reward_header": "💎 รางวัลจากด่านที่",
         "treasure_reward_subheader": "(เลือกรับจาก 3 ใบนี้)",
+        "treasure_reward_subheader_5": "(เลือกรับจาก 5 ใบนี้)",
         "replacement_market_header": "🔄 การ์ดตลาดใหม่ 3 ใบ (สำหรับเติม)",
         "nemesis_encounter_header": "คุณจะต้องเผชิญหน้ากับ:",
         "mage_selection_header": "เหล่าผู้วิเศษผู้ถูกเลือก (4 คน):",
@@ -86,6 +87,7 @@ LANGUAGES = {
         "battle_4_header": "👹 Battle 4 (Final Boss): Face",
         "treasure_reward_header": "💎 Treasure Reward from Tier",
         "treasure_reward_subheader": "(Choose from these 3 cards)",
+        "treasure_reward_subheader_5": "(Choose from these 5 cards)",
         "replacement_market_header": "🔄 3 New Market Cards (for replacement)",
         "nemesis_encounter_header": "You will face:",
         "mage_selection_header": "The chosen Mages (4):",
@@ -140,7 +142,6 @@ st.sidebar.subheader(t["exp_select_header"])
 if not df_cards_full.empty:
     expansions = pd.concat([df_mages_full['Expansion'], df_nemeses_full['Expansion'], df_cards_full['Expansion'], df_treasures_full['Expansion']]).dropna().unique().tolist()
     selected_expansions = []
-    # Using a unique key for each checkbox that changes with the language to avoid state conflicts
     for expansion in sorted(expansions):
         if st.sidebar.checkbox(expansion, value=True, key=f"exp_{expansion}_{lang_code}"):
             selected_expansions.append(expansion)
@@ -180,7 +181,6 @@ if st.sidebar.button(t["random_button"]):
             nemesis_3 = df_nemeses[df_nemeses['Level'] == 3].sample(1).iloc[0]
             nemesis_4 = df_nemeses[df_nemeses['Level'] == 4].sample(1).iloc[0]
 
-            # --- New Market Logic for Expedition ---
             gems_pool = df_cards[df_cards['Type'] == 'Gem']
             if randomization_style == t["style_optimize"]:
                 cheap_gems = gems_pool[gems_pool['Cost'].isin([2, 3])]
@@ -189,9 +189,9 @@ if st.sidebar.button(t["random_button"]):
                     remaining_gems_pool = gems_pool.drop(first_gem.index)
                     other_gems = remaining_gems_pool.sample(2)
                     initial_gems = pd.concat([first_gem, other_gems])
-                else:
+                else: 
                     initial_gems = gems_pool.sample(3)
-            else: # True Random
+            else:
                 initial_gems = gems_pool.sample(3)
 
             initial_relics = df_cards[df_cards['Type'] == 'Relic'].sample(2)
@@ -199,15 +199,25 @@ if st.sidebar.button(t["random_button"]):
             initial_market_df = pd.concat([initial_gems, initial_relics, initial_spells])
             
             available_cards = df_cards.drop(initial_market_df.index)
-            replacement_market_1 = available_cards.sample(3)
+            
+            # <<< ปรับแก้: สุ่มการ์ดใหม่หลัง Battle 1 เป็น Gem 1, Relic 1, Spell 1 >>>
+            gem_replace_1 = available_cards[available_cards['Type'] == 'Gem'].sample(1)
+            relic_replace_1 = available_cards[available_cards['Type'] == 'Relic'].sample(1)
+            spell_replace_1 = available_cards[available_cards['Type'] == 'Spell'].sample(1)
+            replacement_market_1 = pd.concat([gem_replace_1, relic_replace_1, spell_replace_1])
+            
+            # นำการ์ดที่ถูกเลือกแล้วออกจากกองกลาง
             available_cards = available_cards.drop(replacement_market_1.index)
+            
+            # การ์ดใหม่ชุดที่ 2 และ 3 ยังสุ่มแบบเดิม
             replacement_market_2 = available_cards.sample(3)
             available_cards = available_cards.drop(replacement_market_2.index)
             replacement_market_3 = available_cards.sample(3)
             
             treasures_1 = df_treasures[df_treasures['Level'] == 1].sample(3)
             treasures_2 = df_treasures[df_treasures['Level'] == 2].sample(3)
-            treasures_3 = df_treasures[df_treasures['Level'] == 3].sample(3)
+            # <<< ปรับแก้: สุ่มการ์ดสมบัติ Level 3 เป็น 5 ใบ >>>
+            treasures_3 = df_treasures[df_treasures['Level'] == 3].sample(5)
             
             tab_list = [f"▶️ Setup & Battle 1", f"⚔️ Battle 2", f"⚔️ Battle 3", f"👹 Battle 4 (Final)"]
             tab1, tab2, tab3, tab4 = st.tabs(tab_list)
@@ -277,11 +287,12 @@ if st.sidebar.button(t["random_button"]):
                 st.caption(f"*{nemesis_3['Expansion']}*")
 
             with tab4:
-                st.subheader(f'{t["treasure_reward_header"]} 3 {t["treasure_reward_subheader"]}')
-                cols = st.columns(3)
+                st.subheader(f'{t["treasure_reward_header"]} 3 {t["treasure_reward_subheader_5"]}')
+                # <<< ปรับแก้: สร้าง 5 คอลัมน์สำหรับสมบัติ 5 ใบ >>>
+                cols = st.columns(5)
                 for i, tr in enumerate(treasures_3.itertuples()):
                     with cols[i]:
-                        st.image(tr.ImageURL, width=200)
+                        st.image(tr.ImageURL, width=150) # อาจจะลดขนาดรูปเล็กน้อยเพื่อให้พอดี
                         st.caption(f"**{tr.Name}** (Level {tr.Level})<br>*{tr.Expansion}*", unsafe_allow_html=True)
                 st.divider()
                 st.subheader(t["replacement_market_header"])
@@ -316,7 +327,7 @@ if st.sidebar.button(t["random_button"]):
                     gems = pd.concat([first_gem, other_gems])
                 else: 
                     gems = gems_pool.sample(3)
-            else: # True Random
+            else:
                 gems = gems_pool.sample(3)
 
             relics = df_cards[df_cards['Type'] == 'Relic'].sample(2)
