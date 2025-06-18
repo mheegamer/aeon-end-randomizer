@@ -1,5 +1,5 @@
 # ==============================================================================
-# Aeon's End Randomizer - Final Version (Bug Fix for Single Game Nemesis)
+# Aeon's End Randomizer - Final Version (Bug Fix for KeyError on Empty Sheets)
 # ==============================================================================
 
 # --- 1. Import ไลบรารีที่จำเป็น ---
@@ -139,8 +139,20 @@ st.title(t["app_title"])
 st.sidebar.header(t["sidebar_header"])
 
 st.sidebar.subheader(t["exp_select_header"])
-if not df_cards_full.empty:
-    expansions = pd.concat([df_mages_full['Expansion'], df_nemeses_full['Expansion'], df_cards_full['Expansion'], df_treasures_full['Expansion']]).dropna().unique().tolist()
+
+# <<< ปรับแก้: แก้ไขวิธีรวมรายชื่อภาคเสริมให้รองรับชีตที่ว่างเปล่า >>>
+all_expansion_series = []
+if not df_mages_full.empty and 'Expansion' in df_mages_full.columns:
+    all_expansion_series.append(df_mages_full['Expansion'])
+if not df_nemeses_full.empty and 'Expansion' in df_nemeses_full.columns:
+    all_expansion_series.append(df_nemeses_full['Expansion'])
+if not df_cards_full.empty and 'Expansion' in df_cards_full.columns:
+    all_expansion_series.append(df_cards_full['Expansion'])
+if not df_treasures_full.empty and 'Expansion' in df_treasures_full.columns:
+    all_expansion_series.append(df_treasures_full['Expansion'])
+
+if all_expansion_series:
+    expansions = pd.concat(all_expansion_series).dropna().unique().tolist()
     selected_expansions = []
     for expansion in sorted(expansions):
         if st.sidebar.checkbox(expansion, value=True, key=f"exp_{expansion}_{lang_code}"):
@@ -148,6 +160,7 @@ if not df_cards_full.empty:
 else:
     selected_expansions = []
     st.sidebar.warning(t["no_card_data_warning"])
+
 
 st.sidebar.divider()
 
@@ -172,6 +185,7 @@ if st.sidebar.button(t["random_button"]):
     df_cards = df_cards_full[df_cards_full['Expansion'].isin(selected_expansions)]
     df_treasures = df_treasures_full[df_treasures_full['Expansion'].isin(selected_expansions)]
     
+    # (โค้ดที่เหลือเหมือนเดิมทุกประการ)
     if game_mode == t["mode_expedition"]:
         st.header(t["expedition_results_header"])
         try:
@@ -321,7 +335,6 @@ if st.sidebar.button(t["random_button"]):
     else: # Single Game
         st.header(t["single_game_results_header"])
         try:
-            # <<< ปรับแก้: แก้ไขการสุ่ม Nemesis ให้สุ่มจากทุก Level โดยไม่กรอง Level == 1 >>>
             nemesis = df_nemeses.sample(1).iloc[0]
             mages = df_mages.sample(4)
             
